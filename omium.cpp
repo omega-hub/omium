@@ -134,8 +134,45 @@ public:
     {
         if(myBrowser != NULL)
         {
+            
             CefRefPtr<CefBrowserHost> host = myBrowser->GetHost();
-            if(e.getServiceType() == Service::Pointer)
+            if(e.getServiceType() == static_cast<enum Service::ServiceType>(Event::ServiceTypeKeyboard) && 
+                e.getType() == Event::Down)
+            {
+                omsg("Keyboard Event");
+                CefKeyEvent ce;
+                // Process special keys
+                if(e.isFlagSet(Event::Enter))
+                {
+                    ce.windows_key_code = 0x0D;
+                    omsg("Enter Event");
+                }
+                else if(e.isFlagSet(Event::Left))
+                {
+                    ce.windows_key_code = 0x25;
+                    omsg("Left Key Event");
+                }
+                else if(e.isFlagSet(Event::Right))
+                {
+                    ce.windows_key_code = 0x27;
+                    omsg("Right Key Event");
+                }
+                else
+                {
+                    char c;
+                    if(e.getChar(&c))
+                    {
+                        ce.character = c;
+                        //ce.windows_key_code = 0x33;
+                        omsg("Character Key Event");
+                        omsg(string(1,c));
+                        ce.windows_key_code = (int)(c);
+                    }
+                }
+                ce.type = KEYEVENT_KEYDOWN;
+                host->SendKeyEvent(ce);
+
+            } else if(e.getServiceType() == Service::Pointer)
             {
                 CefMouseEvent me;
                 me.x = e.getPosition()[0];
