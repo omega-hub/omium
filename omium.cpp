@@ -140,71 +140,81 @@ public:
                 e.getType() == Event::Down)
             {
                 omsg("Keyboard Event");
-                CefKeyEvent ce;
+                // CefKeyEvent ce;
                 // Process special keys
                 if(e.isFlagSet(Event::Enter))
                 {
-                    ce.windows_key_code = 0x0D;
-                    omsg("Enter Event");
+                    //ce.windows_key_code = 0x0D;
+                    //omsg("Enter Event");
+                    sendKeyEvent(0x0D,host);
                 }
                 if(e.isFlagSet(Event::ButtonLeft))
                 {
-                    ce.windows_key_code = 0x25;
-                    omsg("Left Key Event");
+                    // ce.windows_key_code = 0x25;
+                    // omsg("Left Key Event");
+                    sendKeyEvent(0x25,host);
                 }
                 if(e.isFlagSet(Event::ButtonRight))
                 {
-                    ce.windows_key_code = 0x27;
-                    omsg("Right Key Event");
+                    // ce.windows_key_code = 0x27;
+                    // omsg("Right Key Event");
+                    sendKeyEvent(0x27,host);
                 }
                 if(e.isFlagSet(Event::ButtonDown))
                 {
-                    ce.windows_key_code = 0x28;
-                    omsg("Down Key Event");
+                    // ce.windows_key_code = 0x28;
+                    // omsg("Down Key Event");
+                    sendKeyEvent(0x28,host);
                 }
                 if(e.isFlagSet(Event::ButtonUp))
                 {
-                    ce.windows_key_code = 0x26;
-                    omsg("Up Key Event");
+                    // ce.windows_key_code = 0x26;
+                    // omsg("Up Key Event");
+                    sendKeyEvent(0x26,host);
                 }
                 if(e.isFlagSet(Event::Button5))
                 {
-                    ce.windows_key_code = 0x08;
-                    omsg("Backspace Key Event");
+                    // ce.windows_key_code = 0x08;
+                    // omsg("Backspace Key Event");
+                    sendKeyEvent(0x08,host);
                 }
                 if(e.isFlagSet(Event::Button6))
                 {
-                    ce.windows_key_code = 0x09;
-                    omsg("Tab Key Event");
+                    // ce.windows_key_code = 0x09;
+                    // omsg("Tab Key Event");
+                    sendKeyEvent(0x09,host);
                 }
                 if(e.isFlagSet(Event::Shift))
                 {
-                    ce.windows_key_code = 0x10;
-                    omsg("Shift Key Event");
+                    // ce.windows_key_code = 0x10;
+                    // omsg("Shift Key Event");
+                    sendKeyEvent(0x09,host);
                 }
                 if(e.isFlagSet(Event::Alt))
                 {
-                    ce.windows_key_code = 0x12;
-                    omsg("Alt Key Event");
+                    // ce.windows_key_code = 0x12;
+                    // omsg("Alt Key Event");
+                    sendKeyEvent(0x12,host);
                 }
                 if(e.isFlagSet(Event::Ctrl))
                 {
-                    ce.windows_key_code = 0x11;
-                    omsg("Control Key Event");
+                    // ce.windows_key_code = 0x11;
+                    // omsg("Control Key Event");
+                    sendKeyEvent(0x11,host);
                 }
 
                 char c;
                 if(e.getChar(&c))
                 {
-                    ce.character = c;
-                    //ce.windows_key_code = 0x33;
-                    omsg("Character Key Event");
-                    omsg(string(1,c));
-                    ce.windows_key_code = (int)(c);
+                    // ce.character = c;
+                    // omsg("Character Key Event");
+                    // omsg(string(1,c));
+                    // ce.windows_key_code = (int)(c);
+                    sendKeyEvent((int)(c),host);
                 }
 
-                ce.type = KEYEVENT_KEYDOWN;
-                host->SendKeyEvent(ce);
+                // ce.type = KEYEVENT_KEYDOWN;
+                // host->SendKeyEvent(ce);
 
             } else if(e.getServiceType() == Service::Pointer)
             {
@@ -235,9 +245,14 @@ public:
 
     PixelData* getPixels() { return myPixels; }
 
-    // void sendKeyEvent(int code) {
+    void sendKeyEvent(int code, CefBrowserHost * host) {
+        omsg("Sending Key Event");
+        CefKeyEvent ce;
+        ce.windows_key_code = code;
+        ce.type = KEYEVENT_KEYDOWN;
+        host->SendKeyEvent(ce);
+    }
 
-    // }
     void resize(int width, int height)
     {
         myWidth = width;
