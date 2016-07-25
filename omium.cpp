@@ -137,7 +137,7 @@ public:
             
             CefRefPtr<CefBrowserHost> host = myBrowser->GetHost();
             if(e.getServiceType() == static_cast<enum Service::ServiceType>(Event::ServiceTypeKeyboard) && 
-                e.getType() == Event::Down)
+                e.getTypek() == Event::Down)
             {
                 omsg("Keyboard Event");
                 CefKeyEvent ce;
