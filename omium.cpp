@@ -137,7 +137,7 @@ public:
             
             CefRefPtr<CefBrowserHost> host = myBrowser->GetHost();
             if(e.getServiceType() == static_cast<enum Service::ServiceType>(Event::ServiceTypeKeyboard) && 
-                e.getTypek() == Event::Down)
+                e.getType() == Event::Down)
             {
                 omsg("Keyboard Event");
                 CefKeyEvent ce;
@@ -147,28 +147,62 @@ public:
                     ce.windows_key_code = 0x0D;
                     omsg("Enter Event");
                 }
-                else if(e.isFlagSet(Event::Left))
+                if(e.isFlagSet(Event::ButtonLeft))
                 {
                     ce.windows_key_code = 0x25;
                     omsg("Left Key Event");
                 }
-                else if(e.isFlagSet(Event::Right))
+                if(e.isFlagSet(Event::ButtonRight))
                 {
                     ce.windows_key_code = 0x27;
                     omsg("Right Key Event");
                 }
-                else
+                if(e.isFlagSet(Event::ButtonDown))
                 {
-                    char c;
-                    if(e.getChar(&c))
-                    {
-                        ce.character = c;
-                        //ce.windows_key_code = 0x33;
-                        omsg("Character Key Event");
-                        omsg(string(1,c));
-                        ce.windows_key_code = (int)(c);
-                    }
+                    ce.windows_key_code = 0x28;
+                    omsg("Down Key Event");
                 }
+                if(e.isFlagSet(Event::ButtonUp))
+                {
+                    ce.windows_key_code = 0x26;
+                    omsg("Up Key Event");
+                }
+                if(e.isFlagSet(Event::Button5))
+                {
+                    ce.windows_key_code = 0x08;
+                    omsg("Backspace Key Event");
+                }
+                if(e.isFlagSet(Event::Button6))
+                {
+                    ce.windows_key_code = 0x09;
+                    omsg("Tab Key Event");
+                }
+                if(e.isFlagSet(Event::Shift))
+                {
+                    ce.windows_key_code = 0x10;
+                    omsg("Shift Key Event");
+                }
+                if(e.isFlagSet(Event::Alt))
+                {
+                    ce.windows_key_code = 0x12;
+                    omsg("Alt Key Event");
+                }
+                if(e.isFlagSet(Event::Ctrl))
+                {
+                    ce.windows_key_code = 0x11;
+                    omsg("Control Key Event");
+                }
+
+                char c;
+                if(e.getChar(&c))
+                {
+                    ce.character = c;
+                    //ce.windows_key_code = 0x33;
+                    omsg("Character Key Event");
+                    omsg(string(1,c));
+                    ce.windows_key_code = (int)(c);
+                }
+
                 ce.type = KEYEVENT_KEYDOWN;
                 host->SendKeyEvent(ce);
 
@@ -201,6 +235,9 @@ public:
 
     PixelData* getPixels() { return myPixels; }
 
+    // void sendKeyEvent(int code) {
+
+    // }
     void resize(int width, int height)
     {
         myWidth = width;
