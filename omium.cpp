@@ -139,6 +139,7 @@ public:
             CefRefPtr<CefBrowserHost> host = myBrowser->GetHost();
             if(e.getServiceType() == static_cast<enum Service::ServiceType>(Event::ServiceTypeKeyboard))
             {
+                uint sKeyFlags;
                 //omsg("Keyboard Event");
                 bool isDown = (e.getType() == Event::Down);
                 if(e.isFlagSet(Event::Enter))
@@ -156,16 +157,17 @@ public:
                 if(e.isFlagSet(Event::Button6))
                     { sendKeyEvent(0x09,host, isDown); }
                 if(e.isFlagSet(Event::Shift))
-                    { sendKeyEvent(0x09,host, isDown); }
+                    { sendKeyEvent(0x09,host, isDown); 
+                    }
                 if(e.isFlagSet(Event::Alt))
                     { sendKeyEvent(0x12,host, isDown); }
                 if(e.isFlagSet(Event::Ctrl))
                     { sendKeyEvent(0x11,host, isDown); }
                 char c;
                 if(e.getChar(&c)) {
-                    //omsg("Successfully received character in omium:");
-                    //omsg(string(1,c));
-                    { sendKeyEvent((int)(c),host, isDown);}
+                    omsg("Successfully received character in omium:");
+                    omsg(string(1,c));
+                    sendCharEvent(c, (int)(c), host, e.getFlags());
                 }
 
             } else if(e.getServiceType() == Service::Pointer)
@@ -196,12 +198,22 @@ public:
     }
 
     PixelData* getPixels() { return myPixels; }
+    void sendCharEvent(char character, int code, CefBrowserHost * host, uint flags) {
+        omsg("Character Event");
+        CefKeyEvent ce;
+        ce.windows_key_code = code;
+        ce.modifiers = flags;
+        ce.character = character;
+        ce.type = KEYEVENT_CHAR;
+        host->SendKeyEvent(ce);
+    }
 
     void sendKeyEvent(int code, CefBrowserHost * host, bool isDown) {
         omsg("Sending Key Event to CEF, with native key code:");
         omsg(std::to_string(static_cast<int>(code)));
         CefKeyEvent ce;
         ce.windows_key_code = code;
+        ce.native_key_code = code;
         //ce.character = 'a';
         //omsg(std::to_string(static_cast<int>(ce.focus_on_editable_field)));
         ce.focus_on_editable_field = true;
@@ -211,14 +223,14 @@ public:
         //ce.is_system_key = 0;
         if (isDown) {
             omsg("event type is DOWN");
-            ce.type = KEYEVENT_KEYDOWN;
+            ce.type = KEYEVENT_RAWKEYDOWN;
         } else {
             omsg("event type is UP");
             ce.type = KEYEVENT_KEYUP;
         }
         host->SendKeyEvent(ce);
-        ce.type = KEYEVENT_KEYUP;
-        host->SendKeyEvent(ce);
+        //ce.type = KEYEVENT_KEYUP;
+        //host->SendKeyEvent(ce);
     }
 
     void resize(int width, int height)
