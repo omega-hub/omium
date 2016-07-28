@@ -1,7 +1,16 @@
 <html>
 <body>
+	<script src= "porthole/res/porthole.js"> </script>
     <div style="color: white">Hello World!</div>
     <input type="button" value="Hello"></input>
     <input type="range" value="Hello"></input>
+    <script>
+    porthole.connected = function() {
+    	{{py print "Hello I am here"}} 
+    }
+    function Hello() {
+    	{{py print "successful call from Python"}} 
+    }
+    </script>
 </body>
 </html>

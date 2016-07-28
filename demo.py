@@ -26,3 +26,5 @@ def onResize():
     img.setSize(Vector2(r[2], r[3]))
     # flip image Y
     img.setSourceRect(0, r[3], r[2], -r[3])
+
+porthole.broadcastjs("Hello()")
