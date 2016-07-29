@@ -165,8 +165,6 @@ public:
                     { sendKeyEvent(0x11,host, isDown); }
                 char c;
                 if(e.getChar(&c)) {
-                    omsg("Successfully received character in omium:");
-                    omsg(string(1,c));
                     sendCharEvent(c, (int)(c), host, e.getFlags());
                 }
 
@@ -199,7 +197,6 @@ public:
 
     PixelData* getPixels() { return myPixels; }
     void sendCharEvent(char character, int code, CefBrowserHost * host, uint flags) {
-        omsg("Character Event");
         CefKeyEvent ce;
         ce.windows_key_code = code;
         ce.modifiers = flags;
@@ -209,28 +206,17 @@ public:
     }
 
     void sendKeyEvent(int code, CefBrowserHost * host, bool isDown) {
-        omsg("Sending Key Event to CEF, with native key code:");
-        omsg(std::to_string(static_cast<int>(code)));
         CefKeyEvent ce;
         ce.windows_key_code = code;
         ce.native_key_code = code;
-        //ce.character = 'a';
-        //omsg(std::to_string(static_cast<int>(ce.focus_on_editable_field)));
         ce.focus_on_editable_field = true;
-        //omsg(std::to_string(static_cast<int>(ce.focus_on_editable_field)));
 
-       // ce.modifiers = 0;
-        //ce.is_system_key = 0;
         if (isDown) {
-            omsg("event type is DOWN");
             ce.type = KEYEVENT_RAWKEYDOWN;
         } else {
-            omsg("event type is UP");
             ce.type = KEYEVENT_KEYUP;
         }
         host->SendKeyEvent(ce);
-        //ce.type = KEYEVENT_KEYUP;
-        //host->SendKeyEvent(ce);
     }
 
     void resize(int width, int height)
