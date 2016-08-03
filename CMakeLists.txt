@@ -1,19 +1,21 @@
 module_version(1.0)
 
+if(OMEGA_OS_WIN)
+    set(CEF_BUILD_FILE cef_binary_3.2704.1432.g60b3718_windows64_minimal)
+elseif(OMEGA_OS_OSX))
+    set(CEF_BUILD_FILE cef_binary_3.2704.1432.g60b3718_macosx64_minimal)
+endif()
+
 # Download and add the CEF3 external project
 if(NOT EXISTS ${CMAKE_BINARY_DIR}/3rdparty/cef3)
     message("Downloading CEF3 binaries...")
-    if(OMEGA_OS_WIN)
-        set(CEF_BUILD_FILE cef_binary_3.2704.1432.g60b3718_windows64_minimal)
-        set(CEF_BUILD_FILE_DEST ${CMAKE_BINARY_DIR}/3rdparty/cef3/${CEF_BUILD_FILE}.tar.bz2)
-        file(DOWNLOAD 
-            http://opensource.spotify.com/cefbuilds/${CEF_BUILD_FILE}.tar.bz2 
-            ${CEF_BUILD_FILE_DEST} SHOW_PROGRESS)
-        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CEF_BUILD_FILE_DEST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/3rdparty/cef3)
-    endif()
+    set(CEF_BUILD_FILE_DEST ${CMAKE_BINARY_DIR}/3rdparty/cef3/${CEF_BUILD_FILE}.tar.bz2)
+    file(DOWNLOAD 
+        http://opensource.spotify.com/cefbuilds/${CEF_BUILD_FILE}.tar.bz2 
+        ${CEF_BUILD_FILE_DEST} SHOW_PROGRESS)
+    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CEF_BUILD_FILE_DEST} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/3rdparty/cef3)
 endif()
 
-set(CEF_BUILD_FILE cef_binary_3.2704.1432.g60b3718_windows64_minimal)
 set(CEF_ROOT ${CMAKE_BINARY_DIR}/3rdparty/cef3/${CEF_BUILD_FILE})
 set(CMAKE_MODULE_PATH ${CEF_ROOT}/cmake)
 
@@ -60,9 +62,7 @@ if(OS_WINDOWS)
   COPY_FILES("omium" "${CEF_RESOURCE_FILES}" "${CEF_ROOT}/Resources" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG}")
   COPY_FILES("omium" "${CEF_BINARY_FILES}" "${CEF_ROOT}/Release" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE}")
   COPY_FILES("omium" "${CEF_RESOURCE_FILES}" "${CEF_ROOT}/Resources" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE}")
-endif()
-
-if(OS_LINUX)
+else()
   # Copy binary and resource files to the target output directory.
   COPY_FILES("omium" "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
   COPY_FILES("omium" "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
