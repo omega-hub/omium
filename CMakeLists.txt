@@ -2,7 +2,7 @@ module_version(1.0)
 
 if(OMEGA_OS_WIN)
     set(CEF_BUILD_FILE cef_binary_3.2704.1432.g60b3718_windows64_minimal)
-elseif(OMEGA_OS_OSX))
+elseif(OMEGA_OS_OSX)
     set(CEF_BUILD_FILE cef_binary_3.2704.1432.g60b3718_macosx64_minimal)
 endif()
 
