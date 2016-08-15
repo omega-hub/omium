@@ -157,7 +157,7 @@ public:
                 if(e.isFlagSet(Event::Button6))
                     { sendKeyEvent(0x09,host, isDown); }
                 if(e.isFlagSet(Event::Shift))
-                    { sendKeyEvent(0x09,host, isDown); 
+                    { sendKeyEvent(0x10,host, isDown); 
                     }
                 if(e.isFlagSet(Event::Alt))
                     { sendKeyEvent(0x12,host, isDown); }
