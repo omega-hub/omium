@@ -32,6 +32,9 @@ if(OMEGA_OS_WIN)
     set(CEF_DLL_WRAPPER_LIB 
         debug ${CMAKE_BINARY_DIR}/lib/debug/libcef_dll_wrapper.lib 
         optimized ${CMAKE_BINARY_DIR}/lib/release/libcef_dll_wrapper.lib )
+elseif(OMEGA_OS_OSX)
+    set(CEF_DLL_WRAPPER_LIB 
+        ${CMAKE_BINARY_DIR}/lib/libcef_dll_wrapper.a) 
 endif()
 
 include_directories(${CEF_ROOT} ${CEF_ROOT}/include)
@@ -43,12 +46,24 @@ else()
 endif()
 set_target_properties(omium_process PROPERTIES FOLDER modules)
 
-target_compile_options(omium PUBLIC $<$<CONFIG:Debug>:/MTd>) #${CEF_CXX_COMPILER_FLAGS_DEBUG}>)
-target_compile_options(omium PUBLIC $<$<CONFIG:Release>:/MT>)# ${CEF_CXX_COMPILER_FLAGS_RELEASE}>)
+if(OMEGA_OS_WIN)
+	target_compile_options(omium PUBLIC $<$<CONFIG:Debug>:/MTd>) #${CEF_CXX_COMPILER_FLAGS_DEBUG}>)
+	target_compile_options(omium PUBLIC $<$<CONFIG:Release>:/MT>)# ${CEF_CXX_COMPILER_FLAGS_RELEASE}>)
+else()
+	target_compile_options(omium PUBLIC $<$<CONFIG:Debug>:${CEF_CXX_COMPILER_FLAGS_DEBUG}>)
+	target_compile_options(omium PUBLIC $<$<CONFIG:Release>:${CEF_CXX_COMPILER_FLAGS_RELEASE}>)
+endif()
+
+message("${CEF_DLL_WRAPPER_LIB} ${CEF_STANDARD_LIBS}")
 target_link_libraries(omium omega libcef_lib ${CEF_DLL_WRAPPER_LIB} ${CEF_STANDARD_LIBS})
 
-target_compile_options(omium_process PUBLIC $<$<CONFIG:Debug>:/MTd>) #${CEF_CXX_COMPILER_FLAGS_DEBUG}>)
-target_compile_options(omium_process PUBLIC $<$<CONFIG:Release>:/MT>)# ${CEF_CXX_COMPILER_FLAGS_RELEASE}>)
+if(OMEGA_OS_WIN)
+	target_compile_options(omium_process PUBLIC $<$<CONFIG:Debug>:/MTd>) #${CEF_CXX_COMPILER_FLAGS_DEBUG}>)
+	target_compile_options(omium_process PUBLIC $<$<CONFIG:Release>:/MT>)# ${CEF_CXX_COMPILER_FLAGS_RELEASE}>)
+else()
+	target_compile_options(omium_process PUBLIC $<$<CONFIG:Debug>:${CEF_CXX_COMPILER_FLAGS_DEBUG}>)
+	target_compile_options(omium_process PUBLIC $<$<CONFIG:Release>:${CEF_CXX_COMPILER_FLAGS_RELEASE}>)
+endif()
 target_link_libraries(omium_process libcef_lib ${CEF_DLL_WRAPPER_LIB} ${CEF_STANDARD_LIBS})
 
 declare_native_module(omium)

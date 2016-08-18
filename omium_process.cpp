@@ -7,12 +7,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
     printf(lpCmdLine);
     CefMainArgs args(hInstance);
-    return CefExecuteProcess(args, nullptr, nullptr);
+    return CefExecuteProcess(args, NULL, NULL);
 }
 #else
 int main(int argc, char *argv[])
 {
     CefMainArgs args(argc, argv);
-    return CefExecuteProcess(args, nullptr, nullptr);
+    return CefExecuteProcess(args, NULL, NULL);
 }
 #endif

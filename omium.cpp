@@ -119,7 +119,7 @@ public:
             //renderSystem->getAutoCreatedWindow()->getCustomAttribute("WINDOW", &windowHandle);
             window_info.SetAsWindowless(NULL, true);
             myBrowserClient = new BrowserClient(renderHandler);
-            myBrowser = CefBrowserHost::CreateBrowserSync(window_info, myBrowserClient.get(), url, browserSettings, nullptr);
+            myBrowser = CefBrowserHost::CreateBrowserSync(window_info, myBrowserClient.get(), url, browserSettings, NULL);
             myBrowser->GetHost()->SetZoomLevel(myZoomLevel);
         }
     }
