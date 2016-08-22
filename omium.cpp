@@ -265,8 +265,17 @@ private:
 
         CefSettings settings;
         settings.windowless_rendering_enabled = 1;
-        //settings.single_process = 1;
-        CefString(&settings.browser_subprocess_path).FromASCII("omium_process");
+        settings.single_process = 1;
+#ifdef OMEGA_OS_OSX
+		String execdir;
+		String execname;
+		StringUtils::splitFilename(ogetexecpath(), execname, execdir);
+		execdir = StringUtils::replaceAll(execdir, "./", "");
+		String respath = ostr("%1%Resources", %execdir);
+		oflog(Verbose, "[omium::initialize] resources path: %1%", %respath);
+        CefString(&settings.resources_dir_path).FromASCII(respath.c_str());
+#endif
+        //CefString(&settings.browser_subprocess_path).FromASCII("omium_process");
         if(!CefInitialize(args, settings, new BrowserApp(), NULL))
         {
             oerror("CefInitialize failed");
