@@ -80,12 +80,12 @@ public:
 public:
     Omium() : EngineModule("omium"),
         myInitialized(false),
+        myFocused(false),
         myZoomLevel(1)
     {
         ModuleServices::addModule(this);
         setPriority(EngineModule::PriorityHigh);
         resize(600, 400);
-        myOffscreen = false;
         initialize();
     }
     ~Omium()
@@ -135,62 +135,73 @@ public:
     {
         if(myBrowser != NULL)
         {
-            
-            CefRefPtr<CefBrowserHost> host = myBrowser->GetHost();
-            if(e.getServiceType() == static_cast<enum Service::ServiceType>(Event::ServiceTypeKeyboard))
+			CefRefPtr<CefBrowserHost> host = myBrowser->GetHost();
+            // Handle focus switches
+            if(e.getServiceType() == Service::Pointer)
             {
-                uint sKeyFlags;
-                //omsg("Keyboard Event");
-                bool isDown = (e.getType() == Event::Down);
-                if(e.isFlagSet(Event::Enter))
-                    { sendKeyEvent(0x0D,host, isDown); }
-                if(e.isFlagSet(Event::ButtonLeft))
-                    { sendKeyEvent(0x25,host, isDown); }
-                if(e.isFlagSet(Event::ButtonRight))
-                    { sendKeyEvent(0x27,host, isDown); }
-                if(e.isFlagSet(Event::ButtonDown))
-                    { sendKeyEvent(0x28,host, isDown); }
-                if(e.isFlagSet(Event::ButtonUp))
-                    { sendKeyEvent(0x26,host, isDown); }
-                if(e.isFlagSet(Event::Button5))
-                    { sendKeyEvent(0x08,host, isDown); }
-                if(e.isFlagSet(Event::Button6))
-                    { sendKeyEvent(0x09,host, isDown); }
-                if(e.isFlagSet(Event::Shift))
-                    { sendKeyEvent(0x10,host, isDown); 
-                    }
-                if(e.isFlagSet(Event::Alt))
-                    { sendKeyEvent(0x12,host, isDown); }
-                if(e.isFlagSet(Event::Ctrl))
-                    { sendKeyEvent(0x11,host, isDown); }
-                char c;
-                if(e.getChar(&c)) {
-                    sendCharEvent(c, (int)(c), host, e.getFlags());
-                }
-
-            } else if(e.getServiceType() == Service::Pointer)
+				CefMouseEvent me;
+				me.x = e.getPosition()[0];
+				me.y = e.getPosition()[1];
+				
+				if(e.getType() == Event::Down)
+				{
+					// If we click on something opaque, the browser intercepts
+					// this mouse event
+					myPixels->beginPixelAccess();
+					bool focusState = myPixels->getPixelA(me.x, me.y) > 0;
+					myPixels->endPixelAccess();
+					if(focusState != myFocused)
+					{
+						if(myFocusChangedCommand.size() > 0)
+						{
+							PythonInterpreter* pi = SystemManager::instance()->getScriptInterpreter();
+							pi->queueCommand(myFocusChangedCommand);
+						}
+						myFocused = focusState;
+					}
+				}
+				else if(e.getType() == Event::Move)
+				{
+					host->SendMouseMoveEvent(me, false);
+				}
+            }
+					
+            if(myFocused)
             {
-                CefMouseEvent me;
-                me.x = e.getPosition()[0];
-                me.y = e.getPosition()[1];
-                if(e.getType() == Event::Move)
-                {
-                    host->SendMouseMoveEvent(me, false);
-                }
-                else if(e.getType() == Event::Down || e.getType() == Event::Up)
-                {
-                    // If we click on something opaque, the browser intercepts
-                    // this mouse event
-                    myPixels->beginPixelAccess();
-                    if(myPixels->getPixelA(me.x, me.y) > 0) e.setProcessed();
-                    myPixels->endPixelAccess();
+				if(e.getServiceType() == static_cast<enum Service::ServiceType>(Event::ServiceTypeKeyboard))
+				{
+	            	e.setProcessed();
+					uint sKeyFlags;
+					//omsg("Keyboard Event");
+					bool isDown = (e.getType() == Event::Down);
+					// We assume the keyboard event contains the native scancode in the extra
+					// data int array
+				
+					if(e.getExtraDataType() == Event::ExtraDataIntArray)
+					{
+						sendKeyEvent(e.getExtraDataInt(0), host, isDown);
+					}
+					char c;
+					if(e.getChar(&c)) {
+						sendCharEvent(c, (int)(c), host, e.getFlags());
+					}
 
-                    CefBrowserHost::MouseButtonType mbt = MBT_LEFT;
-                    if(e.isFlagSet(Event::Right)) mbt = MBT_RIGHT;
-                    else if(e.isFlagSet(Event::Middle)) mbt = MBT_MIDDLE;
+				} 
+				else if(e.getServiceType() == Service::Pointer)
+				{
+					CefMouseEvent me;
+					me.x = e.getPosition()[0];
+					me.y = e.getPosition()[1];
+					e.setProcessed();
+					if(e.getType() == Event::Down || e.getType() == Event::Up)
+					{
+						CefBrowserHost::MouseButtonType mbt = MBT_LEFT;
+						if(e.isFlagSet(Event::Right)) mbt = MBT_RIGHT;
+						else if(e.isFlagSet(Event::Middle)) mbt = MBT_MIDDLE;
 
-                    host->SendMouseClickEvent(me, mbt, e.getType() == Event::Up, 1);
-                }
+						host->SendMouseClickEvent(me, mbt, e.getType() == Event::Up, 1);
+					}
+				}
             }
         }
     }
@@ -207,16 +218,18 @@ public:
 
     void sendKeyEvent(int code, CefBrowserHost * host, bool isDown) {
         CefKeyEvent ce;
-        ce.windows_key_code = code;
+        //ce.windows_key_code = code;
         ce.native_key_code = code;
         ce.focus_on_editable_field = true;
 
         if (isDown) {
-            ce.type = KEYEVENT_RAWKEYDOWN;
+            ce.type = KEYEVENT_KEYDOWN;
         } else {
             ce.type = KEYEVENT_KEYUP;
         }
-        host->SendKeyEvent(ce);
+        // HACK: only send keydown events (otherwise special key input like arrows
+        // and backspace repeat)
+        if(isDown) host->SendKeyEvent(ce);
     }
 
     void resize(int width, int height)
@@ -238,19 +251,14 @@ public:
         }
     }
 
-    void setOffscreen(bool value)
-    {
-        myOffscreen = value;
-    }
-    bool isOffscreen()
-    {
-        return myOffscreen;
-    }
     void setZoom(float zoom)
     {
         myZoomLevel = zoom;
         if(myBrowser != NULL) myBrowser->GetHost()->SetZoomLevel(zoom);
     }
+    
+    bool isFocused() { return myFocused; }
+    void setFocusChangedCommand(const String& cmd) { myFocusChangedCommand = cmd; }
 
 private:
     void initialize()
@@ -290,8 +298,9 @@ private:
     Ref<PixelData> myPixels;
     int myWidth;
     int myHeight;
-    bool myOffscreen;
     float myZoomLevel;
+    bool myFocused;
+    String myFocusChangedCommand;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -323,10 +332,10 @@ BOOST_PYTHON_MODULE(omium)
         PYAPI_STATIC_REF_GETTER(Omium, getInstance)
         PYAPI_METHOD(Omium, resize)
         PYAPI_REF_GETTER(Omium, getPixels)
-        PYAPI_METHOD(Omium, setOffscreen)
-        PYAPI_METHOD(Omium, isOffscreen)
         PYAPI_METHOD(Omium, open)
         PYAPI_METHOD(Omium, setZoom)
+        PYAPI_METHOD(Omium, setFocusChangedCommand)
+        PYAPI_METHOD(Omium, isFocused)
         ;
    
     Omium::instance = new Omium();
